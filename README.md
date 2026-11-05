@@ -1,3 +1,9 @@
+# VRCLS Romaji（非官方分支）
+
+[下载安装包](https://github.com/pan0001/VRCLS-Romaji/releases/latest) · [中文安装、更新与恢复说明](romaji/README.md) · [上游项目](https://github.com/VoiceLinkVR/VRCLS)
+
+SteamVR 本人发言三行罗马音小窗与 Quest X 键临时闭麦。使用独立启动器，在兼容的官方更新后自动生成新版副本；遇到不兼容版本时继续使用上一次通过运行检查的副本。以下保留上游项目说明。
+
 # VRCLS - VRChat LinguaSync
 
 VRCLS 全称 **VRChat LinguaSync**。这是面向 VRChat 的实时语音识别、翻译、语音合成、OSC 与 SteamVR 同步工具，也是原 Python 版 VRCLS 的 C#/.NET 8 + WPF 重制版。

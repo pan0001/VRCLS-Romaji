@@ -1,0 +1,71 @@
+{
+  "libraries": {
+    "Kawazu/1.1.4": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-ZXSCv+STeJomB+sjHBk74b30rAI/JTPAzanC7YhsP+6qy7HzZV5QYHhtpXd21jdCUjvSasAhbIZzpa+BFZoOfA==",
+      "path": "kawazu/1.1.4",
+      "hashPath": "kawazu.1.1.4.nupkg.sha512"
+    },
+    "LibNMeCab.IpaDicBin/0.10.0": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-Ky8tAvVnsRyAcRi70RvA/y7+Vr/n77kqdGI+JFoH2nbMIf2ZQr8iWNDcIy8Quh/kugjYVrA2yles32xcx75nYg==",
+      "path": "libnmecab.ipadicbin/0.10.0",
+      "hashPath": "libnmecab.ipadicbin.0.10.0.nupkg.sha512"
+    },
+    "LibNMeCab/0.10.1": {
+      "type": "package",
+      "serviceable": true,
+      "sha512": "sha512-GXP1Lu5YJQM1kE0KYMMDoYVwdZdLja66yaiQK/tR3XWNGalCC+gwDS6Dm4WWuB8xgFq9VB0c71WfTNEhXyR7ww==",
+      "path": "libnmecab/0.10.1",
+      "hashPath": "libnmecab.0.10.1.nupkg.sha512"
+    },
+    "VRCLS.Romaji/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  },
+  "target": {
+    "Kawazu/1.1.4": {
+      "dependencies": {
+        "LibNMeCab": "0.10.1",
+        "LibNMeCab.IpaDicBin": "0.10.0"
+      },
+      "runtime": {
+        "lib/net5.0/Kawazu.dll": {
+          "assemblyVersion": "1.1.4.0",
+          "fileVersion": "1.1.4.0"
+        }
+      }
+    },
+    "LibNMeCab.IpaDicBin/0.10.0": {
+      "dependencies": {
+        "LibNMeCab": "0.10.1"
+      },
+      "runtime": {
+        "lib/netstandard2.0/LibNMeCab.IpaDicBin.dll": {
+          "assemblyVersion": "0.10.0.0",
+          "fileVersion": "0.10.0.0"
+        }
+      }
+    },
+    "LibNMeCab/0.10.1": {
+      "runtime": {
+        "lib/netstandard2.0/LibNMeCab.dll": {
+          "assemblyVersion": "0.10.1.0",
+          "fileVersion": "2020.12.27.32342"
+        }
+      }
+    },
+    "VRCLS.Romaji/1.0.0": {
+      "dependencies": {
+        "Kawazu": "1.1.4"
+      },
+      "runtime": {
+        "VRCLS.Romaji.dll": {}
+      }
+    }
+  }
+}

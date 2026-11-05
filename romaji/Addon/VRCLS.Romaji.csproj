@@ -1,0 +1,19 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <UseWPF>true</UseWPF>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+  </PropertyGroup>
+  <ItemGroup>
+
+    <Reference Include="VRCLS.Services"><HintPath>$(VrclsReferenceDir)/VRCLS.Services.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="System.Drawing.Common"><HintPath>$(VrclsReferenceDir)/System.Drawing.Common.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="System.Diagnostics.DiagnosticSource"><HintPath>$(VrclsReferenceDir)/System.Diagnostics.DiagnosticSource.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="VRCLS.Core"><HintPath>$(VrclsReferenceDir)/VRCLS.Core.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="System.Text.Json"><HintPath>$(VrclsReferenceDir)/System.Text.Json.dll</HintPath><Private>false</Private></Reference>
+    <Reference Include="System.Text.Encodings.Web"><HintPath>$(VrclsReferenceDir)/System.Text.Encodings.Web.dll</HintPath><Private>false</Private></Reference>
+    <PackageReference Include="Kawazu" Version="1.1.4" />
+  </ItemGroup>
+</Project>
