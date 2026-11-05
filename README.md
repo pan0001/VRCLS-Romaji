@@ -1,8 +1,8 @@
-# VRCLS Romaji（非官方分支）
+# VRCLS Romaji（非官方补丁）
 
-[下载安装包](https://github.com/pan0001/VRCLS-Romaji/releases/latest) · [中文安装、更新与恢复说明](romaji/README.md) · [上游项目](https://github.com/VoiceLinkVR/VRCLS)
+[下载 Windows 原位补丁 ZIP](https://github.com/pan0001/VRCLS-Romaji/releases/download/v1.1.0/VRCLS-Romaji-Patch-windows-x64.zip) · [中文安装与卸载说明](romaji/Patch/README.md) · [上游项目](https://github.com/VoiceLinkVR/VRCLS)
 
-SteamVR 本人发言三行罗马音小窗与 Quest X 键临时闭麦。使用独立启动器，在兼容的官方更新后自动生成新版副本；遇到不兼容版本时继续使用上一次通过运行检查的副本。以下保留上游项目说明。
+保留官方 VRCLS.exe 和 SteamVR 入口：本人发言的日语罗马音三行小窗、Quest 左手 X 临时闭麦。首次安装后，后台工具会在官方程序退出后给兼容更新自动补回；不兼容则不写入。另有可选的[独立启动器模式](romaji/README.md)。以下保留上游项目说明。
 
 # VRCLS - VRChat LinguaSync
 

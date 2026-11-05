@@ -1,4 +1,4 @@
-[CmdletBinding()]param([ValidateSet('Prepare','Launch','Status')][string]$Action='Launch',[string]$InstallDir)
+[CmdletBinding()]param([ValidateSet('Prepare','Launch','Status','PatchStage')][string]$Action='Launch',[string]$InstallDir,[hashtable]$OriginalFiles=@{})
 $ErrorActionPreference='Stop'
 $base=$PSScriptRoot
 $sourceFile=Join-Path $base 'source.txt'
@@ -36,6 +36,7 @@ function InputFiles {
     $pristine=@{'VRCLS.dll'='98E0046265557AC62154624886203DF5A370BE9B29AF2C8B66E67FA281573A41';'VRCLS.Services.dll'='7D1EC7908BF50FB11339579A6552CB3CEAB4DABCD3FE137E886A701948A1D69A';'VRCLS.deps.json'='DE530E2951A888432EE5DFD79F4F84C31DBC4007DB198E60AC93B667F5CB0AEA'}
     foreach($n in @('VRCLS.exe','VRCLS.runtimeconfig.json','VRCLS.dll','VRCLS.Services.dll','VRCLS.Core.dll','VRCLS.deps.json')){
         $p=Join-Path $InstallDir $n
+        if($OriginalFiles.ContainsKey($n)){$map[$n]=$OriginalFiles[$n];continue}
         if($legacy.ContainsKey($n) -and (Digest $p) -in $legacy[$n]){
             $p=$null
             foreach($b in @('steamvr-romaji-package-backup-1015','romaji-backup-20260915')){
@@ -66,15 +67,20 @@ function PrepareVersion($map,$key){
         if($f.Extension -notin @('.dll','.exe') -or $f.Name -like 'unins*.exe' -or $f.Name -like 'VRCLS.Romaji*' -or $map.ContainsKey($f.Name)){continue}
         Copy-Item -LiteralPath $f.FullName -Destination $dir
     }
-    foreach($sub in Get-ChildItem -LiteralPath $InstallDir -Directory){
+    if($Action -ne 'PatchStage'){foreach($sub in Get-ChildItem -LiteralPath $InstallDir -Directory){
         if(($sub.Attributes -band [IO.FileAttributes]::ReparsePoint) -eq 0 -and ($sub.Name -in @('runtimes','data','scripts','translator','pre-models','Assets','plugins') -or $sub.Name -cmatch '^[a-z]{2}(-[A-Za-z]{2,4})?$')){
             Copy-Item -LiteralPath $sub.FullName -Destination $dir -Recurse
         }
     }
+    }
     foreach($n in $map.Keys){Copy-Item -LiteralPath $map[$n] -Destination (Join-Path $dir $n)}
     Copy-Item -Path (Join-Path $base 'payload\*') -Destination $dir -Recurse -Force
+    if($Action -eq 'PatchStage'){
+        $clean=Join-Path $dir 'pristine';New-Item -ItemType Directory $clean|Out-Null
+        foreach($n in @('VRCLS.dll','VRCLS.Services.dll','VRCLS.deps.json')){Copy-Item -LiteralPath $map[$n] -Destination $clean}
+    }
     $helper=Join-Path $dir 'VRCLS.Romaji.dll'
-    Tool @($map['VRCLS.Services.dll'],$helper,(Join-Path $dir 'VRCLS.Services.dll')) | Out-Host
+    $argv=@($map['VRCLS.Services.dll'],$helper,(Join-Path $dir 'VRCLS.Services.dll')); if($Action -eq 'PatchStage'){$argv=@('in-place')+$argv};Tool $argv | Out-Host
     Tool @('desktop',$map['VRCLS.dll'],$helper,(Join-Path $dir 'VRCLS.dll')) | Out-Host
     $deps=Get-Content -LiteralPath $map['VRCLS.deps.json'] -Raw | ConvertFrom-Json
     $target=$deps.targets.($deps.runtimeTarget.name)
@@ -96,7 +102,7 @@ function PrepareVersion($map,$key){
     if((Identity (InputFiles)) -ne $key){throw 'The official application changed while preparing; retry after update.'}
     $hashes=@{};foreach($n in @($map.Keys)+'VRCLS.Romaji.dll'){$hashes[$n]=Digest (Join-Path $dir $n)}
     [IO.File]::WriteAllText((Join-Path $dir 'fork-ready.json'),(@{key=$key;hashes=$hashes}|ConvertTo-Json))
-    AtomicText $state $id
+    if($Action -ne 'PatchStage'){AtomicText $state $id}
     return $dir
     }catch{
         $safe=[IO.Path]::GetFullPath($dir)
@@ -111,6 +117,7 @@ $owned=$false
 try{
     try{$owned=$mutex.WaitOne(60000)}catch [Threading.AbandonedMutexException]{$owned=$true}
     if(!$owned){throw 'Another fork preparation is still running.'}
+    if($Action -eq 'PatchStage'){$map=InputFiles; PrepareVersion $map (Identity $map); return}
     $last=Current
     try{
         $map=InputFiles; $key=Identity $map

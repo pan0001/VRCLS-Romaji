@@ -5,7 +5,7 @@
 ## 一次安装
 
 1. 先安装官方 VRCLS。首个已实测的基础版本为 **0.7.0.1015**。上游 GitHub 公开快照为 0.7.0.1006，和该发行版不同。
-2. 从 [Releases](https://github.com/pan0001/VRCLS-Romaji/releases/latest) 下载 `VRCLS-Romaji-windows-x64.zip`，完整解压后运行 `Install.cmd`。首次安装需要联网获取固定版本、校验 SHA-256 的 NuGet 依赖（已有本机缓存也可使用）。普通用户权限即可，不需要 .NET SDK。
+2. 从 [Releases](https://github.com/pan0001/VRCLS-Romaji/releases/tag/v1.0.0) 下载 `VRCLS-Romaji-windows-x64.zip`，完整解压后运行 `Install.cmd`。首次安装需要联网获取固定版本、校验 SHA-256 的 NuGet 依赖（已有本机缓存也可使用）。普通用户权限即可，不需要 .NET SDK。
 3. 退出正在运行的官方程序，从开始菜单打开 **VRCLS Romaji**。麦克风目标语言选日语，并在 VRCLS 中开启 SteamVR 字幕。首次注册 SteamVR 自动启动时请从分支入口进行。
 
 如果官方 VRCLS 安装在其他位置，在解压目录运行：

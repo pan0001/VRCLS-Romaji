@@ -6,6 +6,8 @@ try {
 if (args.Length == 3 && args[0] == "check") { Contract.Require(args[1],args[2]); return; }
 if (args.Length == 3 && args[0] == "contract") { Console.WriteLine(Contract.Get(args[1], args[2])); return; }
 if (args.Length == 4 && args[0] == "desktop") { DesktopPatch.Apply(args[1], args[2], args[3]); return; }
+bool direct = args.Length == 4 && args[0] == "in-place";
+if(direct) args=args.Skip(1).ToArray();
 if (args.Length != 3) throw new ArgumentException("Usage: Patcher original-services.dll romaji.dll output-services.dll");
 var original = Path.GetFullPath(args[0]);
 var helper = Path.GetFullPath(args[1]);
@@ -52,12 +54,14 @@ AddEntryHook("CleanupFailedInit", "Release");
 // Release only after the original event loop has stopped, before its OpenVR shutdown.
 AddEntryHook("DestroyGenerationNativeResourcesLocked", "Release");
 
+if(!direct) {
 var manifest = service.Methods.Single(m => m.Name == "EnsureSteamVrManifestWritten");
 var bridge = extension.MainModule.GetType("VRCLS.Romaji.ForkBridge");
 var proc = manifest.Body.Instructions.Single(i => i.Operand is MethodReference m && m.FullName == "System.String System.Environment::get_ProcessPath()");
 proc.Operand = module.ImportReference(bridge.Methods.Single(m => m.Name == "LauncherPath"));
 var manifestDir = manifest.Body.Instructions.First(i => i.Operand is MethodReference m && m.FullName == "System.String System.AppContext::get_BaseDirectory()");
 manifestDir.Operand = module.ImportReference(bridge.Methods.Single(m => m.Name == "ManifestDirectory"));
+}
 var pipeline = module.GetType("VRCLS.Services.Audio.AudioPipelineService");
 var audioMethod = pipeline.Methods.Single(m => m.Name == "OnAudioDataAvailable");
 var audioIl = audioMethod.Body.GetILProcessor();
@@ -100,9 +104,9 @@ string Body(MethodDefinition m) => !m.HasBody ? "" : string.Join("\n", m.Body.In
 var oldMethods = AllTypes(untouched.MainModule.Types).SelectMany(t => t.Methods).ToDictionary(m => m.FullName);
 var changed = AllTypes(verified.MainModule.Types).SelectMany(t => t.Methods)
     .Where(m => Body(m) != Body(oldMethods[m.FullName])).Select(m => m.Name).OrderBy(n => n, StringComparer.Ordinal).ToArray();
-if (!changed.SequenceEqual(new[] { "BuildTranscriptBlocks", "CleanupFailedInit", "DestroyGenerationNativeResourcesLocked", "EnsureSteamVrManifestWritten", "NoteLoopStepEntered", "OnAudioDataAvailable", "UpdatePanel" }))
+if (!changed.SequenceEqual(new[] { "BuildTranscriptBlocks", "CleanupFailedInit", "DestroyGenerationNativeResourcesLocked", "EnsureSteamVrManifestWritten", "NoteLoopStepEntered", "OnAudioDataAvailable", "UpdatePanel" }.Where(n=>!direct || n!="EnsureSteamVrManifestWritten")))
     throw new InvalidOperationException("Unexpected method changes: " + string.Join(", ", changed));
-Console.WriteLine($"Verified {oldMethods.Count - 7} other method bodies unchanged.");
-Console.WriteLine($"Patched 7 methods; original version {assembly.Name.Version} preserved. Output SHA256: {Contract.Hash(File.ReadAllBytes(output))}");
+Console.WriteLine($"Verified {oldMethods.Count - changed.Length} other method bodies unchanged.");
+Console.WriteLine($"Patched {changed.Length} methods; original version {assembly.Name.Version} preserved. Output SHA256: {Contract.Hash(File.ReadAllBytes(output))}");
 
 } catch (Exception ex) { Console.Error.WriteLine(ex.Message); Environment.ExitCode = 1; }

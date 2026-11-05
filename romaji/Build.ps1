@@ -1,7 +1,7 @@
 param([string]$ReferenceDir=(Join-Path $env:LOCALAPPDATA 'Programs\VRCLS'),[string]$Dotnet='dotnet')
 $ErrorActionPreference='Stop'
 $ReferenceDir=[IO.Path]::GetFullPath($ReferenceDir)
-foreach($project in @('Patcher/Patcher.csproj','Addon/VRCLS.Romaji.csproj','Tests/ForkSmoke.csproj','Launcher/Launcher.csproj')){
+foreach($project in @('Patcher/Patcher.csproj','Addon/VRCLS.Romaji.csproj','Tests/ForkSmoke.csproj','Launcher/Launcher.csproj','RepairHost/RepairHost.csproj')){
     & $Dotnet build (Join-Path $PSScriptRoot $project) -c Release --nologo "-p:VrclsReferenceDir=$ReferenceDir"
     if($LASTEXITCODE -ne 0){throw "Build failed: $project"}
 }
@@ -17,4 +17,14 @@ Copy-Item (Join-Path $PSScriptRoot 'Addon/bin/Release/net8.0-windows/VRCLS.Romaj
 $zip=Join-Path $PSScriptRoot 'dist/VRCLS-Romaji-windows-x64.zip'
 Compress-Archive -Path "$out/*" -DestinationPath $zip -Force
 [IO.File]::WriteAllText((Join-Path $PSScriptRoot 'dist/last-build.txt'),$out)
+Get-FileHash $zip
+
+$patch=Join-Path $PSScriptRoot ('dist/patch-'+[guid]::NewGuid().ToString('N'))
+New-Item -ItemType Directory -Force $patch|Out-Null
+foreach($n in @('payload','Manage.ps1','Get-Dependencies.ps1','deps-fragment.json','ForkSmoke.exe','ForkSmoke.dll','Patcher.exe','DOTNET-LICENSE.txt')){Copy-Item (Join-Path $out $n) $patch -Recurse}
+Copy-Item -Path (Join-Path $PSScriptRoot 'Patch/*') -Destination $patch
+Copy-Item (Join-Path $PSScriptRoot 'RepairHost/bin/Release/net48/VRCLS-Romaji-Repair.exe') $patch
+$zip=Join-Path $PSScriptRoot 'dist/VRCLS-Romaji-Patch-windows-x64.zip'
+Compress-Archive -Path "$patch/*" -DestinationPath $zip -Force
+[IO.File]::WriteAllText((Join-Path $PSScriptRoot 'dist/last-patch.txt'),$patch)
 Get-FileHash $zip
