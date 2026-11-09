@@ -8,6 +8,8 @@
 
 上图是 PC 小窗用示例句生成的实际画面。
 
+麦克风设为「常开（实时识别）」时，**按住键盘 V 暂停翻译收音，松开恢复**，在 VRChat 窗口里也可以使用。Quest 左手柄 X 同样可以暂停翻译收音。两键都按住时，要等两个都松开才会恢复。对方的桌面声音仍可翻译。
+
 **头显里**，开启 SteamVR 字幕后，在主字幕上方看「我的发言」。
 
 ![我的发言小窗：第一行是 hajimemashite, yoroshiku onegai shimasu.，第二行是日语译文，第三行是中文「初次见面，请多关照。」](images/my-speech.png)
@@ -24,7 +26,7 @@
 
 ## 安装并试说一句
 
-1. [下载 Windows x64 补丁 ZIP](https://github.com/pan0001/VRCLS-Romaji/releases/download/v1.2.0/VRCLS-Romaji-Patch-windows-x64.zip)，完整解压。
+1. [下载 Windows x64 补丁 ZIP](https://github.com/pan0001/VRCLS-Romaji/releases/download/v1.2.1/VRCLS-Romaji-Patch-windows-x64.zip)，完整解压。
 2. 退出官方 VRCLS，包括托盘图标，然后双击 `Install-Patch.cmd`。首次安装会从本机缓存或 NuGet 获取并校验日语词典等依赖。
 3. 照常打开官方 VRCLS，把**麦克风目标语言设为日语**。对着麦克风说「初次见面，请多关照」，在 PC 小窗照着第一行读。要在头显里看，再开启 SteamVR 字幕。
 

@@ -110,7 +110,8 @@ public static class VrSelfOverlay
                 var now = DateTime.UtcNow;
                 if (now < panel.RetryAfter || (now - panel.LastTick).TotalMilliseconds < 100) return;
                 panel.LastTick = now;
-                if (panel.MicMuted != QuestMicGate.IsMuted) { panel.MicMuted = QuestMicGate.IsMuted; panel.Revision++; }
+                var muted = QuestMicGate.IsMuted;
+                if (panel.MicMuted != muted) { panel.MicMuted = muted; panel.Revision++; }
                 var overlay = OpenVR.Overlay;
                 if (overlay is null) { panel.Handle = 0; panel.Parent = 0; return; }
                 // SetOverlayRaw is asynchronous. Polling ImageLoaded/ImageFailed also lets
@@ -270,7 +271,7 @@ public static class VrSelfOverlay
         graphics.FillPath(background, shape); graphics.DrawPath(border, shape);
         using var titleFont = new Font("Microsoft YaHei UI", 21, FontStyle.Regular, GraphicsUnit.Pixel);
         using var titleBrush = new SolidBrush(Color.FromArgb(200, 207, 216, 226));
-        graphics.DrawString(QuestMicGate.IsMuted ? "我的发言 · 按住 X：暂停收音" : "我的发言", titleFont, titleBrush, 28, 12);
+        graphics.DrawString(QuestMicGate.IsMuted ? "我的发言 · 暂停收音" : "我的发言", titleFont, titleBrush, 28, 12);
         var sizes = new[] { 52f, 44f, 38f };
         var colors = new[] { Color.FromArgb(219, 255, 228), Color.White, Color.FromArgb(220, 228, 238) };
         var lines = new[] { romaji, translation, original };

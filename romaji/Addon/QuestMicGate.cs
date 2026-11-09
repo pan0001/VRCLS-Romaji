@@ -7,14 +7,36 @@ using VRCLS.Core.Models;
 
 namespace VRCLS.Romaji;
 
-/// <summary>Left-hand A/X is a temporary input gate, independent of the user's mic switch.</summary>
+/// <summary>Temporarily silence microphone frames while Quest X or keyboard V is held.</summary>
 public static class QuestMicGate
 {
     private static int pressed;
     private static long sampledAt;
     private static readonly ConditionalWeakTable<object, Source> Sources = new();
     private sealed record Source(bool IsMic);
-    public static bool IsMuted => Volatile.Read(ref pressed) != 0 && Stopwatch.GetElapsedTime(Interlocked.Read(ref sampledAt)).TotalMilliseconds < 300;
+    private const int VirtualKeyV = 0x56;
+    private static AppConfig? config;
+
+    internal static void UseConfig(AppConfig value) => Volatile.Write(ref config, value);
+
+    [DllImport("user32.dll")]
+    private static extern short GetAsyncKeyState(int virtualKey);
+
+    public static bool IsMuted
+    {
+        get
+        {
+            bool questDown = Volatile.Read(ref pressed) != 0 &&
+                Stopwatch.GetElapsedTime(Interlocked.Read(ref sampledAt)).TotalMilliseconds < 300;
+            int? mode = Volatile.Read(ref config)?.VoiceMode;
+            short vState = mode == (int)VoiceTriggerMode.Continuous ? GetAsyncKeyState(VirtualKeyV) : (short)0;
+            return ShouldMute(mode, questDown, vState);
+        }
+    }
+
+    // The high bit represents a currently held key. The low bit can remain set after release.
+    public static bool ShouldMute(int? voiceMode, bool questDown, short vState) =>
+        questDown || (voiceMode == (int)VoiceTriggerMode.Continuous && vState < 0);
 
     // Called only on the application's existing OpenVR event-loop thread, while it
     // is in the active placement/input phase. Never access OpenVR from audio workers.
@@ -50,7 +72,7 @@ public static class QuestMicGate
         var source = Sources.GetValue(pipeline, p => new Source(string.Equals(
             p.GetType().GetField("_sourceName", BindingFlags.NonPublic | BindingFlags.Instance)?.GetValue(p) as string,
             "Mic", StringComparison.OrdinalIgnoreCase)));
-        return FilterFrame(audio, source.IsMic, IsMuted);
+        return source.IsMic ? FilterFrame(audio, true, IsMuted) : audio;
     }
 
     public static AudioDataEventArgs FilterFrame(AudioDataEventArgs audio, bool isMic, bool muted)

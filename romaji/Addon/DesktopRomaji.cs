@@ -8,6 +8,9 @@ public static class DesktopRomaji
 {
     private static readonly ConditionalWeakTable<Window, SelfSpeechWindow> Windows = new();
 
-    public static void Attach(Window window, AppConfig config) =>
+    public static void Attach(Window window, AppConfig config)
+    {
+        QuestMicGate.UseConfig(config);
         Windows.GetValue(window, owner => new SelfSpeechWindow(owner, config));
+    }
 }
