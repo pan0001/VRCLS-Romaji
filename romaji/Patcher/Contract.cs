@@ -9,8 +9,17 @@ internal static class Contract
     internal static string Hash(byte[] bytes) { using var sha = SHA256.Create(); return BitConverter.ToString(sha.ComputeHash(bytes)).Replace("-", ""); }
     internal static void Require(string path, string role)
     {
-        string expected = role == "ui" ? "E4845E0D7293B9D15FE02617CB1973D3F6E3FF7F4BE92BD7BD616FADC2C2A3D0" : role == "core" ? "7644AC75BC9963BE4DD1C149BB5BD0011F9B2290349341E462B7A5EA27582ECD" : "FAF001FFF982CBD24737E46687CC52C574A36CE3B44A295424F5C202FB633EFF";
-        if (Get(path, role) != expected) throw new InvalidOperationException("Unsupported " + role + " integration contract. The previous working generation is preserved.");
+        var digest = Get(path, role);
+        bool supported = role switch
+        {
+            "ui" => digest == "E4845E0D7293B9D15FE02617CB1973D3F6E3FF7F4BE92BD7BD616FADC2C2A3D0",
+            "core" => digest is "7644AC75BC9963BE4DD1C149BB5BD0011F9B2290349341E462B7A5EA27582ECD"
+                or "A1FBCEF7E75EA4B09B1A7F686E562514D7606D51A44B2C4D086CF8DEB3C24E31",
+            "services" => digest is "FAF001FFF982CBD24737E46687CC52C574A36CE3B44A295424F5C202FB633EFF"
+                or "092ECC5F32937F4A4DC513B41CC12B81D1BD69A590F7ED52582621A1E3037937",
+            _ => false
+        };
+        if (!supported) throw new InvalidOperationException("Unsupported " + role + " integration contract. The previous working generation is preserved.");
     }
     internal static string Get(string path, string role)
     {
