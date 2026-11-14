@@ -11,6 +11,7 @@ public static class DesktopRomaji
     public static void Attach(Window window, AppConfig config)
     {
         QuestMicGate.UseConfig(config);
+        MicOriginalSettings.Attach(window);
         Windows.GetValue(window, owner => new SelfSpeechWindow(owner, config));
     }
 }

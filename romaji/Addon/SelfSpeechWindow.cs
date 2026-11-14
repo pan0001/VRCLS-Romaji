@@ -24,6 +24,7 @@ internal sealed class SelfSpeechWindow : Window
     private INotifyPropertyChanged? viewModel;
     private INotifyPropertyChanged? latestNotifier;
     private object? latest;
+    private bool latestOriginalOnly;
     private bool closed;
     private bool movedByUser;
     private int revision;
@@ -100,6 +101,7 @@ internal sealed class SelfSpeechWindow : Window
         if (latestNotifier is not null) latestNotifier.PropertyChanged -= LatestChanged;
         latest = null;
         latestNotifier = null;
+        romaji.Visibility = translation.Visibility = Visibility.Visible;
         romaji.Text = "等待你的发言…";
         translation.Text = original.Text = "";
         ObserveContext();
@@ -136,6 +138,7 @@ internal sealed class SelfSpeechWindow : Window
         if (ReferenceEquals(latest, item)) return;
         if (latestNotifier is not null) latestNotifier.PropertyChanged -= LatestChanged;
         latest = item;
+        latestOriginalOnly = MicOriginalSettings.Enabled;
         latestNotifier = item as INotifyPropertyChanged;
         if (latestNotifier is not null) latestNotifier.PropertyChanged += LatestChanged;
         Refresh();
@@ -159,9 +162,19 @@ internal sealed class SelfSpeechWindow : Window
                 OverlayRomaji.IsJapanese(config.ResolveTertiaryTargetLanguage("Mic")) ? "Translation3" : "Translation";
             var text = Get(latest, slot);
             original.Text = Get(latest, "Original");
+            bool originalOnly = latestOriginalOnly && original.Text.Length > 0 &&
+                string.IsNullOrWhiteSpace(Get(latest, "Translation")) &&
+                string.IsNullOrWhiteSpace(Get(latest, "Translation2")) &&
+                string.IsNullOrWhiteSpace(Get(latest, "Translation3"));
+            romaji.Visibility = translation.Visibility = originalOnly ? Visibility.Collapsed : Visibility.Visible;
+            contentScroll.ScrollToTop();
+            if (originalOnly)
+            {
+                romaji.Text = translation.Text = "";
+                return;
+            }
             translation.Text = string.IsNullOrWhiteSpace(text) ? "翻译中…" : text;
             romaji.Text = string.IsNullOrWhiteSpace(text) ? "等待译文…" : "生成注音…";
-            contentScroll.ScrollToTop();
             var targetJapanese = new[] { config.ResolvePrimaryTargetLanguage("Mic"), config.ResolveSecondaryTargetLanguage("Mic"), config.ResolveTertiaryTargetLanguage("Mic") }.Any(OverlayRomaji.IsJapanese);
             var value = targetJapanese && !string.IsNullOrWhiteSpace(text) ? await OverlayRomaji.ReadingAsync(text) : null;
             await Dispatcher.InvokeAsync(() =>

@@ -62,6 +62,7 @@ proc.Operand = module.ImportReference(bridge.Methods.Single(m => m.Name == "Laun
 var manifestDir = manifest.Body.Instructions.First(i => i.Operand is MethodReference m && m.FullName == "System.String System.AppContext::get_BaseDirectory()");
 manifestDir.Operand = module.ImportReference(bridge.Methods.Single(m => m.Name == "ManifestDirectory"));
 }
+MicOriginalPatch.PatchService(module, extension);
 var pipeline = module.GetType("VRCLS.Services.Audio.AudioPipelineService");
 var audioMethod = pipeline.Methods.Single(m => m.Name == "OnAudioDataAvailable");
 var audioIl = audioMethod.Body.GetILProcessor();
@@ -104,7 +105,7 @@ string Body(MethodDefinition m) => !m.HasBody ? "" : string.Join("\n", m.Body.In
 var oldMethods = AllTypes(untouched.MainModule.Types).SelectMany(t => t.Methods).ToDictionary(m => m.FullName);
 var changed = AllTypes(verified.MainModule.Types).SelectMany(t => t.Methods)
     .Where(m => Body(m) != Body(oldMethods[m.FullName])).Select(m => m.Name).OrderBy(n => n, StringComparer.Ordinal).ToArray();
-if (!changed.SequenceEqual(new[] { "BuildTranscriptBlocks", "CleanupFailedInit", "DestroyGenerationNativeResourcesLocked", "EnsureSteamVrManifestWritten", "NoteLoopStepEntered", "OnAudioDataAvailable", "UpdatePanel" }.Where(n=>!direct || n!="EnsureSteamVrManifestWritten")))
+if (!changed.SequenceEqual(new[] { "BuildTranscriptBlocks", "CleanupFailedInit", "DestroyGenerationNativeResourcesLocked", "EnsureSteamVrManifestWritten", "GetEffectiveLanguagesForRequest", "NoteLoopStepEntered", "OnAudioDataAvailable", "UpdatePanel" }.Where(n=>!direct || n!="EnsureSteamVrManifestWritten")))
     throw new InvalidOperationException("Unexpected method changes: " + string.Join(", ", changed));
 Console.WriteLine($"Verified {oldMethods.Count - changed.Length} other method bodies unchanged.");
 Console.WriteLine($"Patched {changed.Length} methods; original version {assembly.Name.Version} preserved. Output SHA256: {Contract.Hash(File.ReadAllBytes(output))}");

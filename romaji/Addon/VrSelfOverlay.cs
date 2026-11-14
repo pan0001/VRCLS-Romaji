@@ -77,10 +77,17 @@ public static class VrSelfOverlay
             panel.Timestamp = mic.Timestamp;
             panel.Original = mic.Original;
             panel.Translation = translated;
-            panel.Romaji = japanese ? "生成注音…" : "日语译文可显示罗马音";
             panel.ChangedAt = DateTime.UtcNow;
             panel.Revision++;
             var revision = ++panel.TextRevision;
+            if (MicOriginalSettings.Enabled && !string.IsNullOrWhiteSpace(mic.Original) &&
+                string.IsNullOrWhiteSpace(mic.Translation) && string.IsNullOrWhiteSpace(mic.Translation2) &&
+                string.IsNullOrWhiteSpace(mic.Translation3))
+            {
+                panel.Romaji = "";
+                return;
+            }
+            panel.Romaji = japanese ? "生成注音…" : "日语译文可显示罗马音";
             if (japanese) _ = CompleteReading(panel, revision, translated);
         }
     }
@@ -280,7 +287,8 @@ public static class VrSelfOverlay
         {
             using var font = new Font("Microsoft YaHei UI", sizes[i] * Math.Clamp(scale, .7f, 1.25f), FontStyle.Regular, GraphicsUnit.Pixel);
             using var brush = new SolidBrush(colors[i]);
-            var row = new RectangleF(28, 49 + i * 79, TextureWidth - 56, 77);
+            var rowIndex = i == 2 && string.IsNullOrEmpty(romaji) && string.IsNullOrEmpty(translation) ? 0 : i;
+            var row = new RectangleF(28, 49 + rowIndex * 79, TextureWidth - 56, 77);
             var clean = (lines[i] ?? "").Replace('\r', ' ').Replace('\n', ' ');
             using var format = new StringFormat(StringFormat.GenericTypographic) { FormatFlags = StringFormatFlags.NoWrap, LineAlignment = StringAlignment.Center };
             var textWidth = graphics.MeasureString(clean, font, int.MaxValue, format).Width;

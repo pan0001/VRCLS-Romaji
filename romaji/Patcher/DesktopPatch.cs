@@ -23,6 +23,7 @@ internal static class DesktopPatch
         il.InsertAfter(ret, arg);
         il.InsertAfter(arg, call);
         il.InsertAfter(call, Instruction.Create(OpCodes.Ret));
+        var expected = MicOriginalPatch.PatchUi(app.MainModule, addon).Concat(new[] { constructor }).Select(m => m.FullName).OrderBy(n => n, StringComparer.Ordinal).ToArray();
         app.Write(output);
         using var verified = AssemblyDefinition.ReadAssembly(output);
         using var untouched = AssemblyDefinition.ReadAssembly(original);
@@ -30,7 +31,7 @@ internal static class DesktopPatch
         string Body(MethodDefinition m) => !m.HasBody ? "" : string.Join("\n", m.Body.Instructions.Select(i => i.ToString()));
         var oldMethods = Types(untouched.MainModule.Types).SelectMany(t => t.Methods).ToDictionary(m => m.FullName);
         var changed = Types(verified.MainModule.Types).SelectMany(t => t.Methods).Where(m => Body(m) != Body(oldMethods[m.FullName])).ToArray();
-        if (changed.Length != 1 || changed[0].FullName != constructor.FullName) throw new InvalidOperationException("Unexpected UI changes.");
-        Console.WriteLine($"Desktop hook added; {oldMethods.Count - 1} other UI method bodies unchanged.");
+        if (!changed.Select(m => m.FullName).OrderBy(n => n, StringComparer.Ordinal).SequenceEqual(expected)) throw new InvalidOperationException("Unexpected UI changes.");
+        Console.WriteLine($"Desktop and microphone routing hooks added; {oldMethods.Count - expected.Length} other UI method bodies unchanged.");
     }
 }

@@ -16,6 +16,8 @@ internal class Program
     [STAThread]
     public static void Main(string[] args)
     {
+        var preferences = Directory.CreateTempSubdirectory("vrcls-settings-test-");
+        AppContext.SetData("VRCLS.Romaji.SettingsDirectory", preferences.FullName);
         // Test host has a different entry assembly; resolve application-root asset URIs to VRCLS.
         var resourceAssembly = typeof(System.Windows.Application).GetFields(System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Static)
             .Single(f => f.Name.Contains("resourceAssembly", StringComparison.OrdinalIgnoreCase));
@@ -96,6 +98,15 @@ internal class Program
                 window.WindowState = WindowState.Normal;
                 await Wait(() => popup.IsVisible);
                 Check(reading.Text.Contains("tenki"), "Restoring main window restores pinned speech");
+                await SettingsChecks.Run(window, preferences.FullName, async () =>
+                {
+                    var direct = new TranscriptItem { Source = "Mic", Original = "等我一下。" };
+                    vm.Transcripts.Insert(0, direct);
+                    await Wait(() => Line("SelfOriginal").Text == direct.Original);
+                    Check(reading.Visibility == Visibility.Collapsed && Line("SelfTranslation").Visibility == Visibility.Collapsed,
+                        "Original-only speech shows the original without a pending translation");
+                });
+                preferences.Delete();
                 Environment.Exit(0); // Do not trigger the program's config-saving OnClosing/OnExit handlers.
             }
             catch (Exception ex)

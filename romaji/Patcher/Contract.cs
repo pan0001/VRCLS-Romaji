@@ -12,11 +12,12 @@ internal static class Contract
         var digest = Get(path, role);
         bool supported = role switch
         {
-            "ui" => digest == "E4845E0D7293B9D15FE02617CB1973D3F6E3FF7F4BE92BD7BD616FADC2C2A3D0",
+            "ui" => digest is "99DA989C1CEA927668F57FEF087C22ACAEFABC3143701DF8586360650ED5FD7A"
+                or "19FF68CE221464C8D2CE2BB0DA7DB14A998474944F38FDE933CD646608BF8778",
             "core" => digest is "7644AC75BC9963BE4DD1C149BB5BD0011F9B2290349341E462B7A5EA27582ECD"
                 or "A1FBCEF7E75EA4B09B1A7F686E562514D7606D51A44B2C4D086CF8DEB3C24E31",
-            "services" => digest is "FAF001FFF982CBD24737E46687CC52C574A36CE3B44A295424F5C202FB633EFF"
-                or "092ECC5F32937F4A4DC513B41CC12B81D1BD69A590F7ED52582621A1E3037937",
+            "services" => digest is "A6CBC0D1E518B317C85D08CEC84FFC26BC03CFCBB6DC43C04EA229799F9BB059"
+                or "53EA7F88F20DCEF456257830EDEFBD732E6BA26AFF3AC43A695A9C35A9315DC9",
             _ => false
         };
         if (!supported) throw new InvalidOperationException("Unsupported " + role + " integration contract. The previous working generation is preserved.");
@@ -38,7 +39,13 @@ internal static class Contract
             }
         } else if(role == "ui") {
             Body(a.MainModule.GetType("VRCLS.UI.Views.MainWindow").Methods.Single(m=>m.IsConstructor && !m.IsStatic && m.Parameters.Count==1));
+            Body(MicOriginalPatch.MainViewModel(a.MainModule).Methods.Single(m => m.Name == "GetEffectiveMode"));
+            Body(MicOriginalPatch.RecognitionResult(a.MainModule));
         } else if(role == "services") {
+            var languages = MicOriginalPatch.RecognitionLanguages(a.MainModule);
+            Body(languages);
+            foreach (var method in Types(new[] { languages.DeclaringType }).SelectMany(type => type.Methods).Where(m => m.HasBody &&
+                (m.Name.Contains("g__CreateRecognitionRequest") || m.Body.Instructions.Any(i => i.Operand is MethodReference mr && mr.FullName == languages.FullName)))) Body(method);
             var t=a.MainModule.GetType("VRCLS.Services.VR.SteamVROverlayService");
             foreach(var n in new[]{"BuildTranscriptBlocks","UpdatePanel","CleanupFailedInit","DestroyGenerationNativeResourcesLocked","NoteLoopStepEntered","EnsureSteamVrManifestWritten"}) Body(t.Methods.Single(m=>m.Name==n));
             foreach(var n in new[]{"_lock","_panelDirty","_disposed","_overlayHandle","_desiredVisible","_config","_panelTransformInDeviceSpace","_panelTrackedDeviceIndex"}) lines.Add(t.Fields.Single(f=>f.Name==n).FullName);

@@ -30,4 +30,5 @@ foreach (var vState in new short[] { 0, 1, short.MinValue, -32767 })
         throw new Exception($"Keyboard/Quest mic filtering failed for {mode}, X={xDown}, V={vState}");
 }
 if(Assembly.Load("VRCLS").GetType("VRCLS.UI.Views.MainWindow")==null) throw new Exception("Cannot load UI.");
+await MicOriginalChecks.Run();
 Console.WriteLine("Fork smoke check passed.");
